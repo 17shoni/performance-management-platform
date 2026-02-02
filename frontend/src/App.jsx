@@ -8,6 +8,7 @@ import Ratings from './pages/Ratings';
 import Notifications from './pages/Notifications';
 import AdminUsers from './pages/AdminUsers';
 import Layout from './components/Layout';
+import Register from './pages/Register';
 import { Toaster } from 'react-hot-toast';
 
 
@@ -54,6 +55,7 @@ function App() {
     <Router>
       <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
       <Routes>
+        <Route path="/register" element={<Register />} />
         <Route path="/" element={<Login setRole={setRole} />} /> 
         <Route element={<Layout role={role} />}>
           <Route path="/dashboard" element={<Dashboard role={role} />} />

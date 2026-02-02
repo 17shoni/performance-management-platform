@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://performance-management-platform-production.up.railway.app/admin/', 
+  baseURL: 'https://performance-management-platform-production.up.railway.app/api/', 
+  // baseURL: 'http://127.0.0.1:8000/api/',
 });
 
 api.interceptors.request.use((config) => {
@@ -27,6 +28,9 @@ export const login = (username, password) =>
     localStorage.setItem('accessToken', res.data.access);
     return res.data;
   });
+
+export const register = (data) =>
+  api.post('register/', data).then((res) => res.data);
 
 // to decode JWT and get role
 export const getRoleFromToken = () => {
