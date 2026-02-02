@@ -14,9 +14,11 @@ const Register = () => {
     role: 'employee',
   });
 
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleChange = (e) => {
+    setErrors({});
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -24,7 +26,7 @@ const Register = () => {
     e.preventDefault();
 
     if (formData.password !== formData.password2) {
-      toast.error('Passwords do not match');
+      setErrors({ password: ['Passwords do not match.'] });
       return;
     }
 
@@ -33,22 +35,13 @@ const Register = () => {
       toast.success('Registration successful! Please login.');
       navigate('/login');
     } catch (error) {
-        const data = error.response?.data;
+      const data = error.response?.data;
 
-        let message = 'Registration failed';
-
-        if (typeof data === 'string') {
-            message = data;
-        } else if (data?.detail) {
-            message = data.detail;
-        } else if (typeof data === 'object') {
-            const firstKey = Object.keys(data)[0];
-            if (firstKey && Array.isArray(data[firstKey])) {
-            message = data[firstKey][0];
-            }
-        }
-
-        toast.error(message);
+      if (data && typeof data === 'object') {
+        setErrors(data); // ✅ inline errors only
+      } else {
+        setErrors({ general: ['Registration failed.'] });
+      }
     }
   };
 
@@ -60,82 +53,82 @@ const Register = () => {
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* username */}
           <input
-            type="text"
             name="username"
             placeholder="Username"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full px-4 py-2 border rounded-lg"
           />
+          {errors.username && (
+            <p className="text-sm text-red-600">{errors.username[0]}</p>
+          )}
 
-          {/* email */}
           <input
             type="email"
             name="email"
-            placeholder="Email address"
+            placeholder="Email"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full px-4 py-2 border rounded-lg"
           />
+          {errors.email && (
+            <p className="text-sm text-red-600">{errors.email[0]}</p>
+          )}
 
-          {/* password */}
           <input
             type="password"
             name="password"
             placeholder="Password"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full px-4 py-2 border rounded-lg"
           />
+          {errors.password && (
+            <p className="text-sm text-red-600">{errors.password[0]}</p>
+          )}
 
-          {/* confirm password */}
           <input
             type="password"
             name="password2"
             placeholder="Confirm password"
             required
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full px-4 py-2 border rounded-lg"
           />
 
-          {/* first & last name */}
           <div className="grid grid-cols-2 gap-3">
             <input
-              type="text"
               name="first_name"
               placeholder="First name"
               onChange={handleChange}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="px-4 py-2 border rounded-lg"
             />
             <input
-              type="text"
               name="last_name"
               placeholder="Last name"
               onChange={handleChange}
-              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="px-4 py-2 border rounded-lg"
             />
           </div>
 
-          {/* role is locked for employee */}
-          <div>
-            <label className="text-sm text-gray-600 block mb-1">
-              Role
-            </label>
-            <select
-              name="role"
-              value={formData.role}
-              disabled
-              className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
-            >
-              <option value="employee">Employee</option>
-            </select>
-          </div>
+          <select
+            disabled
+            value="employee"
+            className="w-full px-4 py-2 border rounded-lg bg-gray-100"
+          >
+            <option>Employee</option>
+          </select>
+
+          {errors.general && (
+            <p className="text-sm text-red-600 text-center">
+              {errors.general[0]}
+            </p>
+          )}
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition duration-200"
+            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700"
           >
             Register
           </button>
