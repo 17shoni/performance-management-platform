@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'supervisor', 'password',]
         read_only_fields = ['id'] 
 
-    # password = serializers.CharField(write_only=True, required=False)
+    password = serializers.CharField(write_only=True, required=False)
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
@@ -25,11 +25,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True) 
+    password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ('id','username', 'email', 'password', 'password2', 'first_name', 'last_name', 'role')
+        fields = ('id', 'username', 'email', 'password', 'password2', 'first_name', 'last_name', 'role')
         read_only_fields = ('id',)
         extra_kwargs = {'role': {'required': True}}
 
@@ -37,7 +37,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Passwords don't match."})
         return attrs
-    
+
+    def validate_role(self, value):
+        if value != 'employee':
+            raise serializers.ValidationError("Only 'employee' role is allowed during public registration. Contact an admin for other roles.")
+        return value
+
     def create(self, validated_data):
         validated_data.pop('password2')
         user = User.objects.create_user(**validated_data)
