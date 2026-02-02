@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api/', r
+  baseURL: 'https://performance-management-platform-production.up.railway.app/admin/', 
 });
 
 api.interceptors.request.use((config) => {
