@@ -1,4 +1,4 @@
-# Konvergenz Soft Development Challenge - Performance Management Platform
+# Konvergenz Software Development Challenge - Performance Management Platform
  ## Objective (from challenge PDF)
  Build a platform that tracks employee attendance, task completion, supervisor ratings, and provides an intuitive reporting dashboard.
  ## Implemented Features-
