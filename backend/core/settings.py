@@ -108,16 +108,29 @@ DATABASES = {
 
 
 CORS_ALLOWED_ORIGINS = [
-    "https://localhost:3000",
+    "https://performance-management-platform.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    
 ]
 
+CORS_ALLOW_HEADERS = [
+    "authorization",
+    "content-type",
+    "x-csrftoken",
+]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://performance-management-platform-production.up.railway.app",
+    "https://performance-management-platform.vercel.app",
 ]
 
 # Password validation
@@ -129,9 +142,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
