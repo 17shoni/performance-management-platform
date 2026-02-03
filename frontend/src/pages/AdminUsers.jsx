@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import api from '../services/api';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
 
   const [form, setForm] = useState({
     username: '',
@@ -27,6 +28,7 @@ function AdminUsers() {
       setUsers(res.data);
     } catch (err) {
       console.error('Failed to load users', err);
+      toast.error('Failed to load users');
     } finally {
       setLoading(false);
     }
@@ -48,20 +50,14 @@ function AdminUsers() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setCreating(true);
     try {
       const payload = { ...form };
-
-      if (form.role === 'employee' && form.supervisor) {
-        payload.supervisor = form.supervisor;
-      } else {
+      if (form.role !== 'employee') {
         delete payload.supervisor;
       }
-
       await api.post('users/', payload);
-
       toast.success('User created successfully 🎉');
-
       setForm({
         username: '',
         email: '',
@@ -69,20 +65,30 @@ function AdminUsers() {
         role: 'employee',
         supervisor: '',
       });
-
       fetchUsers();
     } catch (err) {
       const data = err.response?.data;
-
       if (data && typeof data === 'object') {
         const firstError = Object.values(data)[0];
         toast.error(Array.isArray(firstError) ? firstError[0] : firstError);
       } else {
         toast.error('Failed to create user');
       }
+    } finally {
+      setCreating(false);
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this user permanently?')) return;
+    try {
+      await api.delete(`users/${id}/`);
+      toast.success('User deleted successfully');
+      fetchUsers();
+    } catch (err) {
+      toast.error('Failed to delete user');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,6 +106,7 @@ function AdminUsers() {
               onChange={handleChange}
               className="p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
+              disabled={creating}
             />
             <input
               name="email"
@@ -109,6 +116,7 @@ function AdminUsers() {
               onChange={handleChange}
               className="p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
+              disabled={creating}
             />
             <input
               name="password"
@@ -118,19 +126,20 @@ function AdminUsers() {
               onChange={handleChange}
               className="p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
+              disabled={creating}
             />
             <select
               name="role"
               value={form.role}
               onChange={handleChange}
               className="p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={creating}
             >
               <option value="employee">Employee</option>
               <option value="supervisor">Supervisor</option>
               <option value="admin">Admin</option>
             </select>
 
-            {/* supervisor dropdown only shown when role is employee */}
             {form.role === 'employee' && (
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -141,6 +150,7 @@ function AdminUsers() {
                   value={form.supervisor}
                   onChange={handleChange}
                   className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={creating}
                 >
                   <option value="">No Supervisor</option>
                   {supervisors.map((sup) => (
@@ -154,9 +164,24 @@ function AdminUsers() {
 
             <button
               type="submit"
-              className="md:col-span-2 bg-linear-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition shadow-lg"
+              disabled={creating}
+              className={`md:col-span-2 py-4 rounded-xl font-bold transition text-white ${
+                creating
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg'
+              }`}
             >
-              Create User
+              {creating ? (
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z" />
+                  </svg>
+                  Creating...
+                </div>
+              ) : (
+                'Create User'
+              )}
             </button>
           </form>
         </div>
@@ -179,6 +204,7 @@ function AdminUsers() {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Email</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Role</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Supervisor</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -200,8 +226,16 @@ function AdminUsers() {
                         {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
+                    <td className="px-6 py-4 text-sm text-gray-700 font-medium">
                       {user.supervisor ? user.supervisor.username : '-'}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <button
+                        onClick={() => handleDelete(user.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-lg text-xs transition"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}

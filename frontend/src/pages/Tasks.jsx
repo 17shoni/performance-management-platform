@@ -3,7 +3,6 @@ import api from '../services/api';
 import toast, { Toaster } from 'react-hot-toast';
 import { useEffect, useState, useRef } from 'react';
 
-
 function Tasks({ role }) {
   const formRef = useRef(null);
   const [tasks, setTasks] = useState([]);
@@ -18,20 +17,18 @@ function Tasks({ role }) {
   const [editingTask, setEditingTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [submitting, setSubmitting] = useState(false); // NEW: track submit state
 
   useEffect(() => {
     fetchCurrentUser();
     fetchTasks();
   }, []);
 
-
   useEffect(() => {
     if (currentUserId && role !== 'employee') {
       fetchEmployees();
     }
   }, [currentUserId, role]);
-
-
 
   const fetchCurrentUser = async () => {
     try {
@@ -94,6 +91,8 @@ function Tasks({ role }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true); // ← Button goes gray + "Creating..."
+
     try {
       const payload = {
         title: form.title,
@@ -124,6 +123,8 @@ function Tasks({ role }) {
       fetchTasks();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to save task');
+    } finally {
+      setSubmitting(false); // ← Button returns to normal
     }
   };
 
@@ -138,10 +139,8 @@ function Tasks({ role }) {
     });
 
     setTimeout(() => {
-        formRef.current?.scrollIntoView({ behavior: 'smooth' });
+      formRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
-
-    
   };
 
   const handleDelete = async (id) => {
@@ -159,7 +158,7 @@ function Tasks({ role }) {
   const handleComplete = async (id) => {
     try {
       await api.patch(`tasks/${id}/`, { completed_at: true });
-      toast.success('Task marked as completed! ');
+      toast.success('Task marked as completed! ✅');
       fetchTasks();
     } catch (err) {
       toast.error('Cannot complete task');
@@ -194,7 +193,7 @@ function Tasks({ role }) {
     <>
       <Toaster position="top-right" reverseOrder={false} />
 
-      <div className="min-h-screen bg-linear-to-br from-gray-50 to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
         <Header />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -290,9 +289,16 @@ function Tasks({ role }) {
               <div className="flex flex-col sm:flex-row gap-4 md:col-span-2 mt-6">
                 <button
                   type="submit"
-                  className="flex-1 bg-linear-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition shadow-lg text-lg"
+                  disabled={submitting}
+                  className={`flex-1 py-4 rounded-xl font-bold text-lg transition shadow-lg ${
+                    submitting
+                      ? 'bg-gray-400 text-gray-700 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                  }`}
                 >
-                  {editingTask ? 'Update Task' : 'Create Task'}
+                  {submitting
+                    ? (editingTask ? 'Updating...' : 'Creating...')
+                    : (editingTask ? 'Update Task' : 'Create Task')}
                 </button>
 
                 {editingTask && (

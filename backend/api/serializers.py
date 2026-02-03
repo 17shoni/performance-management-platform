@@ -7,20 +7,53 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False)
+    supervisor = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(role='supervisor'),
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'supervisor', 'password',]
-        read_only_fields = ['id'] 
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name',
+            'role', 'supervisor', 'password'
+        ]
+        read_only_fields = ['id']
 
-    password = serializers.CharField(write_only=True, required=False)
+    def validate_role(self, value):
+        if self.instance and self.instance.role == 'admin' and value != 'admin':
+            raise serializers.ValidationError("Cannot demote an admin")
+        if value not in ['employee', 'supervisor', 'admin']:
+            raise serializers.ValidationError("Invalid role")
+        return value
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
+        supervisor = validated_data.pop('supervisor', None)
         user = User.objects.create(**validated_data)
         if password:
             user.set_password(password)
-            user.save()
+        if supervisor:
+            user.supervisor = supervisor
+        user.save()
         return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        supervisor = validated_data.pop('supervisor', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if password:
+            instance.set_password(password)
+        if supervisor is not None:
+            instance.supervisor = supervisor
+
+        instance.save()
+        return instance
 
 
 class RegisterSerializer(serializers.ModelSerializer):

@@ -381,11 +381,45 @@ class UserListView(ListCreateAPIView):
             return User.objects.filter(role='employee', supervisor=user)
         return User.objects.filter(id=user.id)
     
+    def perform_create(self, serializer):
+        if self.request.user.role != 'admin':
+            raise PermissionDenied("Only admins can create users")
+        serializer.save()
+    
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView): # admins can also view, update or delete a user
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes =  [IsAdmin]
+    permission_classes =  [permissions.IsAuthenticated]
+
+    def get_object(self):
+        obj = super().get_object()
+        user = self.request.user
+
+        # admin can access anyone
+        if user.role == 'admin':
+            return obj
+
+        # supervisor can only access their employees
+        if user.role == 'supervisor' and obj.role == 'employee' and obj.supervisor == user:
+            return obj
+
+        # Employee can only access only themselves
+        if obj.id == user.id:
+            return obj
+
+        raise PermissionDenied("Not authorized to access this user")
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        if user.role != 'admin':
+            raise PermissionDenied("Only admins can update users")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user.role != 'admin':
+            raise PermissionDenied("Only admins can delete users")
+        instance.delete()
 
 
 User = get_user_model()
@@ -403,23 +437,22 @@ class BootstrapAdminView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if User.objects.filter(role="admin").exists():
-            return Response(
-                {"detail": "Admin already exists"},
-                status=status.HTTP_400_BAD_REQUEST,
+        # if User.objects.filter(role="admin").exists():
+        #     return Response(
+        #         {"detail": "Admin already exists"},
+        #         status=status.HTTP_400_BAD_REQUEST,
+        #     )
+
+        try:
+            admin = User.objects.create_superuser(
+                username=request.data["username"],
+                email=request.data["email"],
+                password=request.data["password"],
+                role="admin",
             )
-
-        admin = User.objects.create_superuser(
-            username=request.data["username"],
-            email=request.data["email"],
-            password=request.data["password"],
-            role="admin",
-        )
-
-        return Response(
-            {"detail": "Admin created successfully"},
-            status=status.HTTP_201_CREATED,
-        )
+            return Response({"detail": "Admin created successfully"}, status=201)
+        except Exception as e:
+            return Response({"detail": str(e)}, status=400)
 
 
 
