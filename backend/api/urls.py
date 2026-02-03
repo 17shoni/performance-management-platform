@@ -22,5 +22,5 @@ urlpatterns = [
     path('users/', UserListView.as_view(), name='user_list'),
     path('users/<int:pk>/', UserDetailView.as_view(), name='user_detail'),
     path('me/', MeView.as_view(), name='me'),
-    path("bootstrap-admin/", BootstrapAdminView.as_view()),
+    path('bootstrap-admin/', BootstrapAdminView.as_view(), name='bootstrap-admin')
 ]
