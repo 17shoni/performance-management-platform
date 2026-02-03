@@ -50,3 +50,6 @@
  - Role-based permissions enforced in views
  - Simple loop-based reports for clarity
  - Notifications implemented as bonus (GET endpoint) Victor – February2, 2026
+ ## Admin credentials 
+  username - admin001
+  password - AdminPass123#
