@@ -24,13 +24,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
-#SECRET_KEY = "django-insecure-local-dev-key-123456"
+# SECRET_KEY = "django-insecure-local-dev-key-123456"
 
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG") == "True"
-#DEBUG = True
+# DEBUG = True
 
 
 
@@ -95,16 +95,16 @@ DATABASES = {
     )
 } 
 
-#DATABASES = {
- #   'default': {
- #       'ENGINE': 'django.db.backends.postgresql',
- #       'NAME': 'performance_db',
- #       'USER': 'postgres',
- #       'PASSWORD': 'postgres',
- #       'HOST': 'localhost',
-  #      'PORT': '5432',
- #   }
-#}
+# DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.postgresql',
+#        'NAME': 'performance_db',
+#        'USER': 'postgres',
+#        'PASSWORD': 'postgres',
+#        'HOST': 'localhost',
+#        'PORT': '5432',
+#    }
+# }
 
 
 CORS_ALLOWED_ORIGINS = [

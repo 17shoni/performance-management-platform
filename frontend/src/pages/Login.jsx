@@ -9,6 +9,7 @@ function Login({ setRole }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [logoutMsg, setLogoutMsg] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,6 +22,7 @@ function Login({ setRole }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); 
     setError('');
 
     try {
@@ -36,6 +38,8 @@ function Login({ setRole }) {
         err.response?.data?.non_field_errors?.[0] ||
         'Invalid username or password';
       setError(backendError);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,7 +52,7 @@ function Login({ setRole }) {
             <span className="text-blue-600">ONVERGENZ</span>
           </div>
           <p className="text-lg text-gray-700 mt-2 font-medium">
-            Soft Development Challenge
+            Performance Management System
           </p>
         </div>
 
@@ -65,47 +69,43 @@ function Login({ setRole }) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Username
-            </label>
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 border rounded-lg"
-              required
-            />
-          </div>
+          <input
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setError(''); 
+            }}
+            placeholder="Username"
+            className="w-full px-4 py-3 border rounded-lg"
+            required
+          />
 
-          <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border rounded-lg"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-10 text-sm text-gray-500"
-            >
-              {showPassword ? 'Hide' : 'Show'}
-            </button>
-          </div>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError('');
+            }}
+            placeholder="Password"
+            className="w-full px-4 py-3 border rounded-lg"
+            required
+          />
 
           <button
             type="submit"
-            className="w-full bg-linear-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-bold"
+            disabled={loading}
+            className={`w-full py-3 rounded-lg font-bold text-white transition
+              ${loading
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-linear-to-r from-blue-600 to-indigo-600 hover:opacity-90'
+              }`}
           >
-            Sign In
+            {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
 
-        {/* 👇 NEW: Register link */}
+        {/* Register link */}
         <div className="mt-6 text-center text-sm text-gray-600">
           Don’t have an account?{' '}
           <Link

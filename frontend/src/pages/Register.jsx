@@ -15,6 +15,7 @@ const Register = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -30,6 +31,8 @@ const Register = () => {
       return;
     }
 
+    setLoading(true);
+
     try {
       await register(formData);
       toast.success('Registration successful! Please login.');
@@ -38,10 +41,12 @@ const Register = () => {
       const data = error.response?.data;
 
       if (data && typeof data === 'object') {
-        setErrors(data); // ✅ inline errors only
+        setErrors(data); // 
       } else {
         setErrors({ general: ['Registration failed.'] });
       }
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -128,9 +133,11 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700"
+            disabled={loading}
+            className={`w-full py-2 rounded-lg font-semibold text-white
+              ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
           >
-            Register
+            {loading ? 'Registering…' : 'Register'}
           </button>
         </form>
 
