@@ -147,6 +147,10 @@ class Rating(models.Model):
 
     def __str__(self):
         return f"The rating is {self.rating}/5 for {self.task}"
-    
+
+class BootstrapAdminState(models.Model):
+    used = models.BooleanField(default=False)
+    used_at = models.DateTimeField(null=True, blank=True)
+
 
 

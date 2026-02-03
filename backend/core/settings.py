@@ -14,6 +14,10 @@ from pathlib import Path
 import os
 import dj_database_url
 from pathlib import Path
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -88,12 +92,13 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-   'default': dj_database_url.config(
+    "default": dj_database_url.config(
         default=os.environ.get("DATABASE_URL"),
         conn_max_age=600,
-       ssl_require=True
+        ssl_require=not DEBUG,  # SSL only in production
     )
-} 
+}
+
 
 # DATABASES = {
 #    'default': {
@@ -179,5 +184,10 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
+
+BOOTSTRAP_ADMIN_TOKEN = os.environ.get(
+    "BOOTSTRAP_ADMIN_TOKEN",
+    "dev-bootstrap-token-change-me"
+)
 
 AUTH_USER_MODEL = 'api.User'

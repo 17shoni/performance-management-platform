@@ -12,6 +12,9 @@ from django.utils import timezone
 from datetime import timedelta
 from rest_framework.generics import ListCreateAPIView
 from django.core.exceptions import ValidationError
+from django.conf import settings
+from django.contrib.auth import get_user_model
+
 
 
 class IsAdmin(permissions.BasePermission):
@@ -383,5 +386,40 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView): # admins can also v
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes =  [IsAdmin]
+
+
+User = get_user_model()
+
+class BootstrapAdminView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        token = request.headers.get("X-BOOTSTRAP-TOKEN")
+
+        if token != settings.BOOTSTRAP_ADMIN_TOKEN:
+            return Response(
+                {"detail": "Invalid or expired bootstrap token"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if User.objects.filter(role="admin").exists():
+            return Response(
+                {"detail": "Admin already exists"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        admin = User.objects.create_superuser(
+            username=request.data["username"],
+            email=request.data["email"],
+            password=request.data["password"],
+            role="admin",
+        )
+
+        return Response(
+            {"detail": "Admin created successfully"},
+            status=status.HTTP_201_CREATED,
+        )
+
 
 
